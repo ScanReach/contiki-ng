@@ -3,7 +3,7 @@
 
 ################################################################################
 # Board and BSP selection
-BOARD_PLATFORMS = launchpad sensortag srf06
+BOARD_PLATFORMS = launchpad sensortag srf06 srt
 
 # All supported boards for this SimpleLink family
 BOARDS = $(foreach BOARD, $(BOARD_PLATFORMS), \
