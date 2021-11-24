@@ -9,7 +9,6 @@ DATA_TYPES_GEN_ROOT = $(SRT_COMMON_ROOT)/generated/inc
 CONTIKI=../..
 CORE_SDK=$(CONTIKI)/arch/cpu/simplelink-cc13xx-cc26xx/lib/coresdk_cc13xx_cc26xx
 
-
 #LDSCRIPT := $(REPO_ROOT)/mesh_node/rpl-srt/cc13x2-cc26x2_standalone.lds
 
 all: $(CONTIKI_PROJECT)
@@ -60,6 +59,7 @@ MODULES_REL += $(REPO_ROOT)/tweetnacl/test/c/inc
 MODULES_REL += $(REPO_ROOT)/tweetnacl/test/c/src
 MODULES_REL += $(SRT_COMMON_ROOT)/inc
 MODULES_REL += $(CORE_SDK)/source/ti/devices/cc13x2_cc26x2
+MODULES_REL += dev/
 
 include $(CONTIKI)/Makefile.include
 

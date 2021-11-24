@@ -11,6 +11,8 @@
 #include "delay.h"
 #include "scanreach-globals.h"
 #include "dev/button-hal.h"
+#include "dev/uart-arch.h"
+#include "srt_serial.h"
 
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -74,54 +76,52 @@ udp_rx_callback(struct simple_udp_connection *c,
   LOG_INFO_("\n");
 
 }
+
+static SRTSER_Instance_t mNordicUartInstance;
+static int nordic_callback(uint8_t inputChar)
+{
+  SRTSER_ProcessIncomingByte(&mNordicUartInstance, inputChar);
+  return 0;
+}
+
+
+static void processNordicMessage(uint8_t *pData, uint8_t length)
+{
+  uip_ipaddr_t dest_ipaddr;
+  if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
+        /* Send to DAG root */
+        simple_udp_sendto(&udp_conn, pData, length, &dest_ipaddr);
+  }
+}
+
+static void init_uart_to_nrf52(void)
+{
+  SRTSER_Init(&mNordicUartInstance, &processNordicMessage, NULL, NULL);
+  uart1_init();
+  uart1_set_callback(&nordic_callback);
+}
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(udp_client_process, ev, data)
 {
-  static struct etimer periodic_timer;
-  static unsigned count;
-  static char str[32];
-  uip_ipaddr_t dest_ipaddr;
-
   PROCESS_BEGIN();
-
-  //SRTMEM_Init();
   scanreach_antenna_init();
 #ifdef Board_CC1352P_MESHNODE
   system_monitor_init();
 #endif
   leds_init();
+  init_uart_to_nrf52();
   ctimer_set(&blink_timer, CLOCK_SECOND >> 4, &blink_callback, NULL);
-
-
   /* Initialize UDP connection */
   simple_udp_register(&udp_conn, UDP_CLIENT_PORT, NULL,
                       UDP_SERVER_PORT, udp_rx_callback);
 
-  etimer_set(&periodic_timer, random_rand() % SEND_INTERVAL);
   while(1) {
     PROCESS_YIELD();
-    if(etimer_expired(&periodic_timer))
-    {
-      if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
-        /* Send to DAG root */
-        LOG_INFO("Sending request %u to ", count);
-        LOG_INFO_6ADDR(&dest_ipaddr);
-        LOG_INFO_("\n");
-        snprintf(str, sizeof(str), "hello %d", count);
-        simple_udp_sendto(&udp_conn, str, strlen(str), &dest_ipaddr);
-        count++;
-      } else {
-        LOG_INFO("Not reachable yet\n");
-      }
-    }
-
     if (ev == button_hal_release_event)
     {
       latest_button_press = clock_seconds();
     }
-
-    /* Add some jitter */
-    etimer_set(&periodic_timer, SEND_INTERVAL - CLOCK_SECOND + (random_rand() % (2 * CLOCK_SECOND)));
   }
 
   PROCESS_END();

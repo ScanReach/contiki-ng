@@ -19,7 +19,10 @@ extern "C"
 #define IEEE802154_CONF_PANID                               0xabcd
 
 // #define TI_UART_CONF_UART0_ENABLE                           1
-// #define TI_UART_CONF_UART1_ENABLE                           1
+#define TI_UART_CONF_UART1_ENABLE                           1
+#define TI_UART_CONF_BAUD_RATE_BLE                          1000000
+
+#define  WATCHDOG_CONF_DISABLE 0
 
 
 #define LOG_LEVEL_SRT                          LOG_LEVEL_NONE
