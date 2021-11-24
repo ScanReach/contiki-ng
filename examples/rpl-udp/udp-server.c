@@ -33,14 +33,43 @@
 #include "net/ipv6/simple-udp.h"
 
 #include "sys/log.h"
+#include  "dev/uart0-arch.h"
+
+#include "crc.h"
+#include "srt_serial.h"
+#include "serial_v1.h"
+#include <stdint.h>
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_INFO
 
-#define WITH_SERVER_REPLY  1
+#define WITH_SERVER_REPLY  0
 #define UDP_CLIENT_PORT	8765
 #define UDP_SERVER_PORT	5678
 
 static struct simple_udp_connection udp_conn;
+
+
+void send_to_host(const uip_ipaddr_t *sender_addr, const uint8_t *payload, uint8_t length)
+{
+  if (payload == NULL)
+  {
+    return;
+  }
+
+  uint8_t msg_buffer[255] = {SRTSER_MESSAGE_BINARY_START_BYTE, SERIAL_UPSTREAM_MESSAGE_TYPES_MESH_UPSTREAM};
+  unsigned msg_length = 2;
+  memcpy(&msg_buffer[msg_length], sender_addr, sizeof(uip_ipaddr_t));
+  msg_length += sizeof(uip_ipaddr_t);
+  memcpy(&msg_buffer[msg_length], payload, length);
+  msg_length += length;
+
+  uint32_t crc = crc32(&msg_buffer[0], msg_length, 0);
+  memcpy(&msg_buffer[msg_length], &crc, sizeof(crc));
+  msg_length += sizeof(crc);
+  msg_buffer[msg_length] = SRTSER_MESSAGE_BINARY_END_BYTE;
+  msg_length++;
+  uart0_write(&msg_buffer[0], msg_length);
+}
 
 PROCESS(udp_server_process, "UDP server");
 AUTOSTART_PROCESSES(&udp_server_process);
@@ -54,9 +83,8 @@ udp_rx_callback(struct simple_udp_connection *c,
          const uint8_t *data,
          uint16_t datalen)
 {
-  LOG_INFO("Received request '%.*s' from ", datalen, (char *) data);
-  LOG_INFO_6ADDR(sender_addr);
-  LOG_INFO_("\n");
+
+  send_to_host(sender_addr, data, datalen);
 #if WITH_SERVER_REPLY
   /* send back the same string to the client as an echo reply */
   LOG_INFO("Sending response.\n");
@@ -67,6 +95,8 @@ udp_rx_callback(struct simple_udp_connection *c,
 PROCESS_THREAD(udp_server_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  LOG_INFO("Started UDP Server ");
 
   /* Initialize DAG root */
   NETSTACK_ROUTING.root_start();
