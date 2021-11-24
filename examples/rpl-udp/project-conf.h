@@ -24,6 +24,14 @@ extern "C"
 
 #define  WATCHDOG_CONF_DISABLE 0
 
+#define MEESHNODE 1 // TODO: Get this define via the build system (prefereably connected to the board definition)
+#if MEESHNODE // The build is for the meshnode
+#define SET_CCFG_MODE_CONF_XOSC_CAP_MOD 0x0
+#define SET_CCFG_MODE_CONF_XOSC_CAPARRAY_DELTA 5
+#else // The build is for launchpad
+#define SET_CCFG_MODE_CONF_XOSC_CAP_MOD 0
+#define SET_CCFG_MODE_CONF_XOSC_CAPARRAY_DELTA -63
+#endif
 
 #define LOG_LEVEL_SRT                          LOG_LEVEL_NONE
 #define LOG_LEVEL_SRT_OTA                      LOG_LEVEL_NONE

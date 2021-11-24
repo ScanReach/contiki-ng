@@ -36,25 +36,27 @@
 #define PROPMODE_BAND_SELECT_CHANNEL                        0
 #define IEEE802154_CONF_PANID                               0xabcd
 
+
+#define  WATCHDOG_CONF_DISABLE 0
+
 #define MEESHNODE 0 // TODO: Get this define via the build system (prefereably connected to the board definition)
-#if MEESHNODE // The build is for the meshnode
+#if MEESHNODE
 #define SET_CCFG_MODE_CONF_XOSC_CAP_MOD 0x0
 #define SET_CCFG_MODE_CONF_XOSC_CAPARRAY_DELTA 5
-#else // The build is for launchpad
+#else
 #define SET_CCFG_MODE_CONF_XOSC_CAP_MOD 0
 #define SET_CCFG_MODE_CONF_XOSC_CAPARRAY_DELTA -63
 #endif
 
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-#ifndef BORDER_ROUTER_CONF_WEBSERVER
-#define BORDER_ROUTER_CONF_WEBSERVER 1
-#endif
-
-#if BORDER_ROUTER_CONF_WEBSERVER
-#define UIP_CONF_TCP 1
-#endif
+#define LOG_LEVEL_SRT                          LOG_LEVEL_NONE
+#define LOG_LEVEL_SRT_OTA                      LOG_LEVEL_NONE
+#define LOG_LEVEL_SRT_ROOT_UART                LOG_LEVEL_NONE
+#define LOG_LEVEL_SRT_RPL_DIRECTED_MESSAGES    LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_IPV6                    LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_RPL                     LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_6LOWPAN                 LOG_LEVEL_NONE
+#define LOG_CONF_LEVEL_MAC                     LOG_LEVEL_NONE
+//#define LOG_CONF_LEVEL_FRAMER                  LOG_LEVEL_NONE
+#define LOG_LEVEL_RADIO                        LOG_LEVEL_NONE
 
 #endif /* PROJECT_CONF_H_ */

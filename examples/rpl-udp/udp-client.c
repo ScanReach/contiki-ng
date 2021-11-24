@@ -3,12 +3,14 @@
 #include "random.h"
 #include "net/netstack.h"
 #include "net/ipv6/simple-udp.h"
+#include "net/ipv6/uiplib.h"
 
 #include "sys/log.h"
 
 
 #include "leds.h"
 #include "delay.h"
+#include "Board.h"
 #include "scanreach-globals.h"
 #include "dev/button-hal.h"
 #include "dev/uart-arch.h"
@@ -88,8 +90,9 @@ static int nordic_callback(uint8_t inputChar)
 static void processNordicMessage(uint8_t *pData, uint8_t length)
 {
   uip_ipaddr_t dest_ipaddr;
-  if(NETSTACK_ROUTING.node_is_reachable() && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)) {
-        /* Send to DAG root */
+  static const char host_ip[] = "fd00::1";
+  if(NETSTACK_ROUTING.node_is_reachable() && uiplib_ip6addrconv(host_ip, &dest_ipaddr)) { //  && NETSTACK_ROUTING.get_root_ipaddr(&dest_ipaddr)
+        /* Send directly to host */
         simple_udp_sendto(&udp_conn, pData, length, &dest_ipaddr);
   }
 }
@@ -105,9 +108,9 @@ static void init_uart_to_nrf52(void)
 PROCESS_THREAD(udp_client_process, ev, data)
 {
   PROCESS_BEGIN();
-  scanreach_antenna_init();
 #ifdef Board_CC1352P_MESHNODE
-  system_monitor_init();
+  scanreach_antenna_init();
+  //system_monitor_init();
 #endif
   leds_init();
   init_uart_to_nrf52();
